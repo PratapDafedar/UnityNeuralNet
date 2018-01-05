@@ -28,7 +28,7 @@ public class ColorPicking : MonoBehaviour {
 	void Start () 
 	{
 		//Input - 3 (r,g,b) -- Output - 1 (Black/White)
-		net = new NeuralNet(3, 4, 1);
+		net = new NeuralNet(3, 2, 1, 2, 0.1f, 0.6f, 100);
 		dataSets = new List<DataSet>();
 		Next();
         
@@ -64,7 +64,7 @@ public class ColorPicking : MonoBehaviour {
 		dataSets.Add(new DataSet(C, v));
 
 		i++;
-		if(!trained && i%10 == 9)
+		//if(!trained && i%10 == 9)
 			Train();
 
 		Next();

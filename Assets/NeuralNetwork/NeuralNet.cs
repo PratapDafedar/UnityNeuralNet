@@ -10,23 +10,28 @@ namespace NeuralNetwork
         public const float LAYER_DISTANCE = 10f;
         public const float NEURON_DISTANCE = 2f;
 
-        public float LearnRate { get; set; }
-		public float Momentum { get; set; }
-		public List<Neuron> InputLayer { get; set; }
-		public List<List<Neuron>> HiddenLayers { get; set; }
-		public List<Neuron> OutputLayer { get; set; }
+        public float LearnRate;
+        public float Momentum;
+        public List<Neuron> InputLayer;
+        public List<List<Neuron>> HiddenLayers;
+        public List<Neuron> OutputLayer;
 
+        private int maxEpoch;
 		private static readonly System.Random Random = new System.Random();
+        private List<float> errors;
 
-		public NeuralNet(int inputSize, int hiddenSize, int outputSize, int numHiddenLayers = 1, float? learnRate = null, float? momentum = null)
+		public NeuralNet(int inputSize, int hiddenSize, int outputSize, int numHiddenLayers = 1, float? learnRate = null, float? momentum = null, int? maxEpoch = null)
 		{
 			LearnRate = learnRate ?? .4f;
 			Momentum = momentum ?? .9f;
+
 			InputLayer = new List<Neuron>();
 			HiddenLayers = new List<List<Neuron>>();
 			OutputLayer = new List<Neuron>();
+            errors = new List<float>();
+            this.maxEpoch = maxEpoch ?? 1000;
 
-			for (var i = 0; i < inputSize; i++)
+            for (var i = 0; i < inputSize; i++)
 				InputLayer.Add(new Neuron());
 
 			for (int i = 0; i < numHiddenLayers; i++)
@@ -44,9 +49,10 @@ namespace NeuralNetwork
 		{
 			for (var i = 0; i < numEpochs; i++)
 			{
-				foreach (var dataSet in dataSets)
-				{
-					ForwardPropagate(dataSet.Values);
+                for (int j = 0; j < dataSets.Count; j++)
+                {
+                    var dataSet = dataSets[i];
+                    ForwardPropagate(dataSet.Values);
 					BackPropagate(dataSet.Targets);
 				}
 			}
@@ -54,29 +60,34 @@ namespace NeuralNetwork
 
 		public void Train(List<DataSet> dataSets, float minimumError)
 		{
-			var error = 1.0;
+			var error = 1.0f;
 			var numEpochs = 0;
 
-			while (error > minimumError && numEpochs < int.MaxValue)
+			while (error > minimumError && numEpochs < 1000)//int.MaxValue)
 			{
-				var errors = new List<float>();
-				foreach (var dataSet in dataSets)
+                errors.Clear();
+				for (int i = 0; i < dataSets.Count; i++)
 				{
-					ForwardPropagate(dataSet.Values);
+                    var dataSet = dataSets[i];
+                    ForwardPropagate(dataSet.Values);
 					BackPropagate(dataSet.Targets);
 					errors.Add(CalculateError(dataSet.Targets));
 				}
 				error = errors.Average();
 				numEpochs++;
 			}
+            Debug.LogFormat("Training result:: error:{0}; epoch:{1}", error, numEpochs);
 		}
 
 		private void ForwardPropagate(params float[] inputs)
 		{
 			var i = 0;
 			InputLayer.ForEach(a => a.Value = inputs[i++]);
-			foreach (var layer in HiddenLayers)
-				layer.ForEach(a => a.CalculateValue());
+            for (int j = 0; j < HiddenLayers.Count; j++)
+            {
+                var layer = HiddenLayers[j];
+                layer.ForEach(a => a.CalculateValue());
+            }
 			OutputLayer.ForEach(a => a.CalculateValue());
 		}
 
@@ -84,8 +95,10 @@ namespace NeuralNetwork
 		{
 			var i = 0;
 			OutputLayer.ForEach(a => a.CalculateGradient(targets[i++]));
-			foreach(var layer in HiddenLayers.AsEnumerable<List<Neuron>>().Reverse() )
+			//foreach(var layer in HiddenLayers.AsEnumerable<List<Neuron>>().Reverse())
+            for (int j = HiddenLayers.Count - 1; j >= 0; j--)
 			{
+                var layer = HiddenLayers[j];
 				layer.ForEach(a => a.CalculateGradient());
 				layer.ForEach(a => a.UpdateWeights(LearnRate, Momentum));
 			}
@@ -100,9 +113,15 @@ namespace NeuralNetwork
 
 		private float CalculateError(params float[] targets)
 		{
-			var i = 0;
-			return OutputLayer.Sum(a => Mathf.Abs((float)a.CalculateError(targets[i++])));
-		}
+            //return OutputLayer.Sum(a => Mathf.Abs((float)a.CalculateError(targets[i++])));
+            float sum = 0f;
+            for (int i = 0; i < OutputLayer.Count; i++)
+            {
+                var layer = OutputLayer[i];
+                sum += Mathf.Abs((float)layer.CalculateError(targets[i]));
+            }
+            return sum;
+        }
 
 		public static float GetRandom()
 		{
@@ -128,30 +147,17 @@ namespace NeuralNetwork
 
         private void RenderLayer(List<Neuron> layer, Vector3 position, float neuronDistance)
         {
-            //Rendering neurons and synapses seperatly with different GL modes to save draw calls.
-            //As per the observation, each GL mode begin,end makes minimum one draw call to GPU. So..
-
-            //Render all neurons.
             GL.Begin(GL.QUADS);
             Vector3 curPos = position;
+            Vector3 endPos = new Vector3(curPos.x + LAYER_DISTANCE, position.y, curPos.z);
             foreach (Neuron neuron in layer)
             {
                 Color neuronCol = GLHelper.ColorFromUnitFloat(neuron.Value);
                 GLHelper.DrawCube(curPos, 0.3f, neuronCol);
-                curPos.y -= neuronDistance;
-            }
-            GL.End();
-
-            //Render all synapses.
-            GL.Begin(GL.LINES);
-            curPos = position;
-            Vector3 endPos = new Vector3(curPos.x + LAYER_DISTANCE, position.y, curPos.z);
-            foreach (Neuron neuron in layer)
-            {
                 neuron.RenderSynapses(curPos, endPos, NEURON_DISTANCE);
                 curPos.y -= neuronDistance;
             }
-            GL.End();
+            GL.End();            
         }
 
         #endregion

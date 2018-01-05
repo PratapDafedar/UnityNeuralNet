@@ -7,12 +7,12 @@ namespace NeuralNetwork
 {
 	public class Neuron
 	{
-		public List<Synapse> InputSynapses { get; set; }
-		public List<Synapse> OutputSynapses { get; set; }
-		public float Bias { get; set; }
-		public float BiasDelta { get; set; }
-		public float Gradient { get; set; }
-		public float Value { get; set; }
+        public List<Synapse> InputSynapses;
+        public List<Synapse> OutputSynapses;
+        public float Bias;
+        public float BiasDelta;
+        public float Gradient;
+        public float Value;
 
 		public Neuron()
 		{
@@ -33,19 +33,34 @@ namespace NeuralNetwork
 
 		public virtual float CalculateValue()
 		{
-			return Value = Sigmoid.Output(InputSynapses.Sum(a => a.Weight * a.InputNeuron.Value) + Bias);
-		}
+            //return Value = Sigmoid.Output(InputSynapses.Sum(a => a.Weight * a.InputNeuron.Value) + Bias);
+            float sum = 0f;
+            for (int i = 0; i < InputSynapses.Count; i++)
+            {
+                var synapse = InputSynapses[i];
+                sum += synapse.Weight * synapse.InputNeuron.Value;
+            }
+            return Value = Sigmoid.Output(sum + Bias);
+        }
 
 		public float CalculateError(float target)
 		{
 			return target - Value;
 		}
 
-		public float CalculateGradient(float? target = null)
-		{
-			if(target == null)
-				return Gradient = OutputSynapses.Sum(a => a.OutputNeuron.Gradient * a.Weight) * Sigmoid.Derivative(Value);
-
+        public float CalculateGradient(float? target = null)
+        {
+            if (target == null)
+            {
+                //return Gradient = OutputSynapses.Sum(a => a.OutputNeuron.Gradient * a.Weight) * Sigmoid.Derivative(Value);
+                float sum = 0f;
+                for (int i = 0; i < OutputSynapses.Count; i++)
+                {
+                    var synapse = OutputSynapses[i];
+                    sum += synapse.OutputNeuron.Gradient * synapse.Weight;
+                }
+                return Gradient = sum * Sigmoid.Derivative(Value);
+            }
 			return Gradient = CalculateError(target.Value) * Sigmoid.Derivative(Value);
 		}
 
@@ -55,9 +70,10 @@ namespace NeuralNetwork
 			BiasDelta = learnRate * Gradient;
 			Bias += BiasDelta + momentum * prevDelta;
 
-			foreach (var synapse in InputSynapses)
+			for (int i = 0; i < InputSynapses.Count; i++)
 			{
-				prevDelta = synapse.WeightDelta;
+                var synapse = InputSynapses[i];
+                prevDelta = synapse.WeightDelta;
 				synapse.WeightDelta = learnRate * Gradient * synapse.InputNeuron.Value;
 				synapse.Weight += synapse.WeightDelta + momentum * prevDelta;
 			}
@@ -71,9 +87,9 @@ namespace NeuralNetwork
             for(int i = 0; i< OutputSynapses.Count; i++)
             {
                 Synapse synapse = OutputSynapses[i];
-                Color neuronCol = GLHelper.ColorFromUnitFloat(synapse.Weight / 10f);
-
-                GLHelper.DrawLine(startPos, endPos, neuronCol);
+                float unitWeight = synapse.Weight / 10f;
+                Color neuronCol = GLHelper.ColorFromUnitFloat(unitWeight);
+                GLHelper.DrawLine(startPos, endPos, neuronCol, 0.1f);
                 endPos.y -= neuronDist;
             }
         }
