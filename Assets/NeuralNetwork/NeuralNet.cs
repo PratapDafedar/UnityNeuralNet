@@ -1,13 +1,16 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using NeuralNetwork.GLRendering;
 
 namespace NeuralNetwork
 {
-	public class NeuralNet
-	{
-		public float LearnRate { get; set; }
+	public class NeuralNet : IGLRender
+    {
+        public const float LAYER_DISTANCE = 10f;
+        public const float NEURON_DISTANCE = 2f;
+
+        public float LearnRate { get; set; }
 		public float Momentum { get; set; }
 		public List<Neuron> InputLayer { get; set; }
 		public List<List<Neuron>> HiddenLayers { get; set; }
@@ -26,12 +29,12 @@ namespace NeuralNetwork
 			for (var i = 0; i < inputSize; i++)
 				InputLayer.Add(new Neuron());
 
-		for (int i = 0; i < numHiddenLayers; i++)
-		{
-			HiddenLayers.Add(new List<Neuron>());
-			for (var j = 0; j < hiddenSize; j++)
-				HiddenLayers[i].Add(new Neuron(i==0?InputLayer:HiddenLayers[i-1]));
-		}
+			for (int i = 0; i < numHiddenLayers; i++)
+			{
+				HiddenLayers.Add(new List<Neuron>());
+				for (var j = 0; j < hiddenSize; j++)
+					HiddenLayers[i].Add(new Neuron(i==0?InputLayer:HiddenLayers[i-1]));
+			}
 
 			for (var i = 0; i < outputSize; i++)
 				OutputLayer.Add(new Neuron(HiddenLayers[numHiddenLayers-1]));
@@ -105,5 +108,52 @@ namespace NeuralNetwork
 		{
 			return 2 * (float)Random.NextDouble() - 1;
 		}
-	}
+
+
+        #region IGLRender implementation
+
+        public void Render(Vector3 position)
+        {
+            RenderLayer(InputLayer, position, NEURON_DISTANCE);
+
+            foreach (List<Neuron> hiddenLayer in HiddenLayers)
+            {
+                position.x += LAYER_DISTANCE;
+                RenderLayer(hiddenLayer, position, NEURON_DISTANCE);
+            }
+            
+            position.x += LAYER_DISTANCE;
+            RenderLayer(OutputLayer, position, NEURON_DISTANCE);
+        }
+
+        private void RenderLayer(List<Neuron> layer, Vector3 position, float neuronDistance)
+        {
+            //Rendering neurons and synapses seperatly with different GL modes to save draw calls.
+            //As per the observation, each GL mode begin,end makes minimum one draw call to GPU. So..
+
+            //Render all neurons.
+            GL.Begin(GL.QUADS);
+            Vector3 curPos = position;
+            foreach (Neuron neuron in layer)
+            {
+                Color neuronCol = GLHelper.ColorFromUnitFloat(neuron.Value);
+                GLHelper.DrawCube(curPos, 0.3f, neuronCol);
+                curPos.y -= neuronDistance;
+            }
+            GL.End();
+
+            //Render all synapses.
+            GL.Begin(GL.LINES);
+            curPos = position;
+            Vector3 endPos = new Vector3(curPos.x + LAYER_DISTANCE, position.y, curPos.z);
+            foreach (Neuron neuron in layer)
+            {
+                neuron.RenderSynapses(curPos, endPos, NEURON_DISTANCE);
+                curPos.y -= neuronDistance;
+            }
+            GL.End();
+        }
+
+        #endregion
+    }
 }

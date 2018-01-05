@@ -2,7 +2,7 @@
 
 namespace NeuralNetwork.GLRendering
 {
-	public static class GLHelper
+	public class GLHelper
 	{
 		public static void BeginRendering(Matrix4x4 matrix)
 		{
@@ -55,5 +55,11 @@ namespace NeuralNetwork.GLRendering
 			GL.Vertex3(p.x + s.x, p.y + s.y, p.z - s.z);
 			GL.Vertex3(p.x - s.x, p.y + s.y, p.z - s.z);
 		}
+
+        public static Color ColorFromUnitFloat(float val)
+        {//val - varies between -1f to 1f.
+            return (val >= 0) ? new Color(val, val, val) :
+                new Color(-val, 0, 0);
+        }
 	}
 }

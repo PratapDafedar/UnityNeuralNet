@@ -3,6 +3,7 @@ using System.Collections;
 using NeuralNetwork;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using NeuralNetwork.GLRendering;
 
 public class ColorPicking : MonoBehaviour {
 
@@ -17,6 +18,8 @@ public class ColorPicking : MonoBehaviour {
 	public GameObject pointer1;
 	public GameObject pointer2;
 
+    public NeuralNetRenderer neuralNetRenderer;
+
 	bool trained;
 
 	int i = 0;
@@ -28,7 +31,9 @@ public class ColorPicking : MonoBehaviour {
 		net = new NeuralNet(3, 4, 1);
 		dataSets = new List<DataSet>();
 		Next();
-	}
+        
+        neuralNetRenderer.InitRender(net);
+    }
 
 	void Next()
 	{
@@ -69,7 +74,7 @@ public class ColorPicking : MonoBehaviour {
 	private void Train()
 	{
 		net.Train(dataSets, MinimumError);
-		trained = true;
+        trained = true;
 	}
 
 	float tryValues(float[] vals)

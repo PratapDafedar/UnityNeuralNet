@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using NeuralNetwork.GLRendering;
+using UnityEngine;
 
 namespace NeuralNetwork
 {
@@ -61,5 +63,21 @@ namespace NeuralNetwork
 			}
 		}
 
-	}
+
+        #region GLRender implementation
+
+        public void RenderSynapses(Vector3 startPos, Vector3 endPos, float neuronDist)
+        {
+            for(int i = 0; i< OutputSynapses.Count; i++)
+            {
+                Synapse synapse = OutputSynapses[i];
+                Color neuronCol = GLHelper.ColorFromUnitFloat(synapse.Weight / 10f);
+
+                GLHelper.DrawLine(startPos, endPos, neuronCol);
+                endPos.y -= neuronDist;
+            }
+        }
+
+        #endregion
+    }
 }
