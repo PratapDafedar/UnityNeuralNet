@@ -972,6 +972,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b39c984dfe2b47a6bfb51aafeea6707, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  config:
+    inputSize: 3
+    hiddenSize: 4
+    outputSize: 1
+    numHiddenLayers: 2
+    learnRate: 0.4
+    momentum: 0.9
+    maxEpoch: 1000
+  visualisationConfig:
+    layerDistance: 10
+    neuronDistance: 4
+    neuronSize: 0.5
+    synapseWidth: 0.2
   I1: {fileID: 730633184}
   I2: {fileID: 1404913745}
   pointer1: {fileID: 1467871380}

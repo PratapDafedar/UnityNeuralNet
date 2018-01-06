@@ -7,9 +7,13 @@ using NeuralNetwork.GLRendering;
 
 public class ColorPicking : MonoBehaviour {
 
-	//Neural Network Variables
-	private const float MinimumError = 0.01f;
-	private static NeuralNet net;
+    public Config config;
+    public GLConfig visualisationConfig;
+
+    //Neural Network Variables
+    private const float MinimumError = 0.01f;
+    [SerializeField]
+	private NeuralNet net;
 	private static List<DataSet> dataSets; 
 
 	public Image I1;
@@ -27,8 +31,8 @@ public class ColorPicking : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		//Input - 3 (r,g,b) -- Output - 1 (Black/White)
-		net = new NeuralNet(3, 2, 1, 2, 0.1f, 0.6f, 100);
+        //Input - 3 (r,g,b) -- Output - 1 (Black/White)
+        net = new NeuralNet(config, visualisationConfig);// (3, 4, 1, 1, 0.3f, 0.8f, 100);
 		dataSets = new List<DataSet>();
 		Next();
         
@@ -68,7 +72,6 @@ public class ColorPicking : MonoBehaviour {
 			Train();
 
 		Next();
-
 	}
 
 	private void Train()

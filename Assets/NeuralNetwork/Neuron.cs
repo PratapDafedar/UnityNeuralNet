@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System;
 using NeuralNetwork.GLRendering;
 using UnityEngine;
 
 namespace NeuralNetwork
 {
+    [Serializable]
 	public class Neuron
 	{
         public List<Synapse> InputSynapses;
@@ -82,14 +84,14 @@ namespace NeuralNetwork
 
         #region GLRender implementation
 
-        public void RenderSynapses(Vector3 startPos, Vector3 endPos, float neuronDist)
+        public void RenderSynapses(Vector3 startPos, Vector3 endPos, float neuronDist, float width)
         {
             for(int i = 0; i< OutputSynapses.Count; i++)
             {
                 Synapse synapse = OutputSynapses[i];
                 float unitWeight = synapse.Weight / 10f;
                 Color neuronCol = GLHelper.ColorFromUnitFloat(unitWeight);
-                GLHelper.DrawLine(startPos, endPos, neuronCol, 0.1f);
+                GLHelper.DrawLine(startPos, endPos, neuronCol, width);
                 endPos.y -= neuronDist;
             }
         }

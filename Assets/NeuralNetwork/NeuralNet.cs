@@ -1,48 +1,47 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NeuralNetwork.GLRendering;
 
 namespace NeuralNetwork
 {
+    [Serializable]
 	public class NeuralNet : IGLRender
     {
-        public const float LAYER_DISTANCE = 10f;
-        public const float NEURON_DISTANCE = 2f;
+		private static readonly System.Random Random = new System.Random();
 
-        public float LearnRate;
-        public float Momentum;
         public List<Neuron> InputLayer;
         public List<List<Neuron>> HiddenLayers;
         public List<Neuron> OutputLayer;
 
-        private int maxEpoch;
-		private static readonly System.Random Random = new System.Random();
+        private Config config;
+        private GLConfig visualisationConfig;
+        [SerializeField]
         private List<float> errors;
 
-		public NeuralNet(int inputSize, int hiddenSize, int outputSize, int numHiddenLayers = 1, float? learnRate = null, float? momentum = null, int? maxEpoch = null)
+		public NeuralNet(Config config, GLConfig visualisationConfig)
 		{
-			LearnRate = learnRate ?? .4f;
-			Momentum = momentum ?? .9f;
+            this.config = config;
+            this.visualisationConfig = visualisationConfig;
 
-			InputLayer = new List<Neuron>();
+            InputLayer = new List<Neuron>();
 			HiddenLayers = new List<List<Neuron>>();
 			OutputLayer = new List<Neuron>();
             errors = new List<float>();
-            this.maxEpoch = maxEpoch ?? 1000;
 
-            for (var i = 0; i < inputSize; i++)
+            for (var i = 0; i < config.inputSize; i++)
 				InputLayer.Add(new Neuron());
 
-			for (int i = 0; i < numHiddenLayers; i++)
+			for (int i = 0; i < config.numHiddenLayers; i++)
 			{
 				HiddenLayers.Add(new List<Neuron>());
-				for (var j = 0; j < hiddenSize; j++)
+				for (var j = 0; j < config.hiddenSize; j++)
 					HiddenLayers[i].Add(new Neuron(i==0?InputLayer:HiddenLayers[i-1]));
 			}
 
-			for (var i = 0; i < outputSize; i++)
-				OutputLayer.Add(new Neuron(HiddenLayers[numHiddenLayers-1]));
+			for (var i = 0; i < config.outputSize; i++)
+				OutputLayer.Add(new Neuron(HiddenLayers[config.numHiddenLayers - 1]));
 		}
 
 		public void Train(List<DataSet> dataSets, int numEpochs)
@@ -63,7 +62,7 @@ namespace NeuralNetwork
 			var error = 1.0f;
 			var numEpochs = 0;
 
-			while (error > minimumError && numEpochs < 1000)//int.MaxValue)
+			while (error > minimumError && numEpochs < config.maxEpoch)
 			{
                 errors.Clear();
 				for (int i = 0; i < dataSets.Count; i++)
@@ -100,9 +99,9 @@ namespace NeuralNetwork
 			{
                 var layer = HiddenLayers[j];
 				layer.ForEach(a => a.CalculateGradient());
-				layer.ForEach(a => a.UpdateWeights(LearnRate, Momentum));
+				layer.ForEach(a => a.UpdateWeights(config.learnRate, config.momentum));
 			}
-			OutputLayer.ForEach(a => a.UpdateWeights(LearnRate, Momentum));
+			OutputLayer.ForEach(a => a.UpdateWeights(config.learnRate, config.momentum));
 		}
 
 		public float[] Compute(params float[] inputs)
@@ -133,28 +132,28 @@ namespace NeuralNetwork
 
         public void Render(Vector3 position)
         {
-            RenderLayer(InputLayer, position, NEURON_DISTANCE);
+            RenderLayer(InputLayer, position, visualisationConfig.neuronDistance);
 
             foreach (List<Neuron> hiddenLayer in HiddenLayers)
             {
-                position.x += LAYER_DISTANCE;
-                RenderLayer(hiddenLayer, position, NEURON_DISTANCE);
+                position.x += visualisationConfig.layerDistance;
+                RenderLayer(hiddenLayer, position, visualisationConfig.neuronDistance);
             }
             
-            position.x += LAYER_DISTANCE;
-            RenderLayer(OutputLayer, position, NEURON_DISTANCE);
+            position.x += visualisationConfig.layerDistance;
+            RenderLayer(OutputLayer, position, visualisationConfig.neuronDistance);
         }
 
         private void RenderLayer(List<Neuron> layer, Vector3 position, float neuronDistance)
         {
             GL.Begin(GL.QUADS);
             Vector3 curPos = position;
-            Vector3 endPos = new Vector3(curPos.x + LAYER_DISTANCE, position.y, curPos.z);
+            Vector3 endPos = new Vector3(curPos.x + visualisationConfig.layerDistance, position.y, curPos.z);
             foreach (Neuron neuron in layer)
             {
                 Color neuronCol = GLHelper.ColorFromUnitFloat(neuron.Value);
-                GLHelper.DrawCube(curPos, 0.3f, neuronCol);
-                neuron.RenderSynapses(curPos, endPos, NEURON_DISTANCE);
+                GLHelper.DrawCube(curPos, visualisationConfig.neuronSize, neuronCol);
+                neuron.RenderSynapses(curPos, endPos, visualisationConfig.neuronDistance, visualisationConfig.synapseWidth);
                 curPos.y -= neuronDistance;
             }
             GL.End();            
