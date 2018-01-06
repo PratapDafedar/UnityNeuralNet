@@ -3,12 +3,17 @@ using System.Collections;
 using NeuralNetwork;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using NeuralNetwork.GLRendering;
 
 public class ColorPicking : MonoBehaviour {
 
-	//Neural Network Variables
-	private const float MinimumError = 0.01f;
-	private static NeuralNet net;
+    public Config config;
+    public GLConfig visualisationConfig;
+
+    //Neural Network Variables
+    private const float MinimumError = 0.01f;
+    [SerializeField]
+	private NeuralNet net;
 	private static List<DataSet> dataSets; 
 
 	public Image I1;
@@ -17,6 +22,8 @@ public class ColorPicking : MonoBehaviour {
 	public GameObject pointer1;
 	public GameObject pointer2;
 
+    public NeuralNetRenderer neuralNetRenderer;
+
 	bool trained;
 
 	int i = 0;
@@ -24,11 +31,13 @@ public class ColorPicking : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		//Input - 3 (r,g,b) -- Output - 1 (Black/White)
-		net = new NeuralNet(3, 4, 1);
+        //Input - 3 (r,g,b) -- Output - 1 (Black/White)
+        net = new NeuralNet(config, visualisationConfig);// (3, 4, 1, 1, 0.3f, 0.8f, 100);
 		dataSets = new List<DataSet>();
 		Next();
-	}
+        
+        neuralNetRenderer.InitRender(net);
+    }
 
 	void Next()
 	{
@@ -59,17 +68,16 @@ public class ColorPicking : MonoBehaviour {
 		dataSets.Add(new DataSet(C, v));
 
 		i++;
-		if(!trained && i%10 == 9)
+		//if(!trained && i%10 == 9)
 			Train();
 
 		Next();
-
 	}
 
 	private void Train()
 	{
 		net.Train(dataSets, MinimumError);
-		trained = true;
+        trained = true;
 	}
 
 	float tryValues(float[] vals)

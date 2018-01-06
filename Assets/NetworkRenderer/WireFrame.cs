@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections;
+using NeuralNetwork.GLRendering;
+using System.Collections.Generic;
 
 [ExecuteInEditMode]
 public class WireFrame : MonoBehaviour {
@@ -15,6 +17,8 @@ public class WireFrame : MonoBehaviour {
 	private Vector3[] lines; 
 	private ArrayList linesArray; 
 	private Material lineMaterial;
+
+	private List<Vector3> randomPoints;
 
 	// Use this for initialization
 	void Start () {
@@ -40,36 +44,66 @@ public class WireFrame : MonoBehaviour {
 		for ( int i = 0 ; i < triangles.Length ; i ++ ){
 			lines[i] = (Vector3)linesArray[i];
 		}
+
+		randomPoints = new List<Vector3> ();
 	}
+
+//	void OnRenderObject() 
+//	{    
+//		//meshRenderer.sharedMaterial.color = backgroundColor; 
+//		lineMaterial.SetPass(0); 
+//		
+//		GL.PushMatrix(); 
+//		GL.MultMatrix(transform.localToWorldMatrix); 
+//		GL.Begin(GL.LINES); 
+//		
+//		for (int i = 0; i < lines.Length / 3; i++) 
+//		{ 
+//			GL.Color(lineColor); 
+//			GL.Vertex(lines[i * 3]); 
+//			GL.Vertex(lines[i * 3 + 1]); 
+//
+//			GL.Color(lineColor * 2);
+//			GL.Vertex(lines[i * 3 + 1]); 
+//			GL.Vertex(lines[i * 3 + 2]); 
+//
+//			GL.Color(backgroundColor);
+//			GL.Vertex(lines[i * 3 + 2]); 
+//			GL.Vertex(lines[i * 3]); 
+//		} 
+//		
+//		GL.End(); 
+//		GL.PopMatrix(); 
+//	}
 
 	void OnRenderObject() 
 	{    
-		//meshRenderer.sharedMaterial.color = backgroundColor; 
 		lineMaterial.SetPass(0); 
-		
-		GL.PushMatrix(); 
-		GL.MultMatrix(transform.localToWorldMatrix); 
-		GL.Begin(GL.LINES); 
-		GL.Color(lineColor); 
-		
+
+		GLHelper.BeginRendering (transform.localToWorldMatrix);
+
+		GL.Begin (GL.LINES);
 		for (int i = 0; i < lines.Length / 3; i++) 
-		{ 
-			GL.Vertex(lines[i * 3]); 
-			GL.Vertex(lines[i * 3 + 1]); 
-			
-			GL.Vertex(lines[i * 3 + 1]); 
-			GL.Vertex(lines[i * 3 + 2]); 
-			
-			GL.Vertex(lines[i * 3 + 2]); 
-			GL.Vertex(lines[i * 3]); 
-		} 
+		{
+			GLHelper.DrawLine(lines[i * 3], lines[i * 3 + 1], lineColor);
+			GLHelper.DrawLine(lines[i * 3 + 1], lines[i * 3 + 2], lineColor);
+			GLHelper.DrawLine(lines[i * 3 + 2], lines[i * 3], backgroundColor);
+		}
+		GL.End ();
+//
+		GL.Begin (GL.QUADS);
+//		foreach (Vector3 p in randomPoints) {
+//			GLHelper.DrawCube (p, 0.1f, Color.green);
+//		}
+		GLHelper.DrawCuboid (transform.position, transform.localScale, Color.green);
+		GL.End ();
+		GLHelper.EndRendering ();
+	}
 		
-		GL.End(); 
-		GL.PopMatrix(); 
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+//	void Update()
+//	{
+//		if (Input.GetKey (KeyCode.Space)) {
+//			randomPoints.Add (new Vector3(Random.Range(-10f, 10f), Random.Range(-10f, 10f), Random.Range(-10f, 10f)));
+//		}
+//	}
 }

@@ -1,12 +1,16 @@
-﻿
+﻿using System;
+
 namespace NeuralNetwork
 {
+    [Serializable]
     public class Synapse
     {
-        public Neuron InputNeuron { get; set; }
-        public Neuron OutputNeuron { get; set; }
-        public float Weight { get; set; }
-        public float WeightDelta { get; set; }
+        [NonSerialized]
+        public Neuron InputNeuron;
+        [NonSerialized]
+        public Neuron OutputNeuron;
+        public float Weight;
+        public float WeightDelta;
 
         public Synapse(Neuron inputNeuron, Neuron outputNeuron)
         {

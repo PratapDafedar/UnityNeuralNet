@@ -11,6 +11,7 @@
 				Bind "Color",color 
 			} 
 			ZWrite On
+			ZTest On
 			Cull Front 
 			Fog 
 			{
