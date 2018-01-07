@@ -16,7 +16,7 @@ namespace NeuralNetwork
         public List<Neuron> OutputLayer;
 
         private Config config;
-        private GLConfig visualisationConfig;
+        private readonly GLConfig visualisationConfig;
         [SerializeField]
         private List<float> errors;
 
@@ -75,7 +75,7 @@ namespace NeuralNetwork
 				error = errors.Average();
 				numEpochs++;
 			}
-            Debug.LogFormat("Training result:: error:{0}; epoch:{1}", error, numEpochs);
+            //Debug.LogFormat("Training result:: error:{0}; epoch:{1}", error, numEpochs);
 		}
 
 		private void ForwardPropagate(params float[] inputs)
