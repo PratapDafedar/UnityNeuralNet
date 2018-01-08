@@ -15,7 +15,7 @@ public class NetLayer : MonoBehaviour
 
     //Neural Network Variables
     private const float MinimumError = 0.1f;
-    private static NeuralNet net;
+    public NeuralNet net;
     public static List<DataSet> dataSets;
 
     private int collectedDatasets = 0;
@@ -37,7 +37,7 @@ public class NetLayer : MonoBehaviour
 		if (result > 0.5f)
 		{
 			player.jump();
-			Debug.Log ("Jump : " + result);
+			Debug.Log ("Jump : " + player.distanceInPercent);
 		}
     }
 

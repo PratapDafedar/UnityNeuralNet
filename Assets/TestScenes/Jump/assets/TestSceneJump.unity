@@ -905,8 +905,8 @@ MonoBehaviour:
     hiddenSize: 3
     outputSize: 1
     numHiddenLayers: 1
-    learnRate: 0.1
-    momentum: 0.9
+    learnRate: 0.4
+    momentum: 0
     maxEpoch: 10
   visualisationConfig:
     layerDistance: 6
@@ -914,6 +914,10 @@ MonoBehaviour:
     neuronSize: 0.3
     synapseWidth: 0.1
   neuralNetRenderer: {fileID: 330650442}
+  net:
+    InputLayer: []
+    OutputLayer: []
+    errors: []
   player: {fileID: 536702317}
 --- !u!4 &660373615
 Transform:
